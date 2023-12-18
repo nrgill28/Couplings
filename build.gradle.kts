@@ -1,14 +1,14 @@
 import java.time.Instant
 
 plugins {
-  id(/*net.fabricmc.*/ "fabric-loom") version "1.3.2"
+  id("fabric-loom") version "1.3.2"
   id("io.github.juuxel.loom-quiltflower") version "1.10.0"
   id("net.nemerosa.versioning") version "3.0.0"
   id("org.gradle.signing")
 }
 
 group = "dev.sapphic"
-version = "1.9.4+1.20.3"
+version = "1.9.4+1.20.5"
 
 if ("CI" in System.getenv()) {
   version = "$version-${versioning.info.build}"
@@ -50,7 +50,7 @@ repositories {
 }
 
 dependencies {
-  minecraft("com.mojang:minecraft:23w45a")
+  minecraft("com.mojang:minecraft:23w51b")
 
   mappings(loom.layered {
     officialMojangMappings {
@@ -58,10 +58,10 @@ dependencies {
     }
   })
 
-  modImplementation("net.fabricmc:fabric-loader:0.14.24")
+  modImplementation("net.fabricmc:fabric-loader:0.15.3")
 
-  modImplementation(include(fabricApi.module("fabric-api-base", "0.90.8+1.20.3"))!!)
-  modImplementation(include(fabricApi.module("fabric-networking-api-v1", "0.90.8+1.20.3"))!!)
+  modImplementation(include(fabricApi.module("fabric-api-base", "0.91.3+1.20.4"))!!)
+  modImplementation(include(fabricApi.module("fabric-networking-api-v1", "0.91.3+1.20.4"))!!)
 
   implementation(include("com.electronwill.night-config:core:3.6.6")!!)
   implementation(include("com.electronwill.night-config:toml:3.6.6")!!)

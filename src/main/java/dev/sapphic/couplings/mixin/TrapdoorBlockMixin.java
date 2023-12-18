@@ -45,12 +45,11 @@ abstract class TrapdoorBlockMixin extends HorizontalDirectionalBlock
 
   @Inject(
       method =
-          "use("
+          "useWithoutItem("
               + "Lnet/minecraft/world/level/block/state/BlockState;"
               + "Lnet/minecraft/world/level/Level;"
               + "Lnet/minecraft/core/BlockPos;"
               + "Lnet/minecraft/world/entity/player/Player;"
-              + "Lnet/minecraft/world/InteractionHand;"
               + "Lnet/minecraft/world/phys/BlockHitResult;"
               + ")Lnet/minecraft/world/InteractionResult;",
       require = 1,
@@ -73,7 +72,6 @@ abstract class TrapdoorBlockMixin extends HorizontalDirectionalBlock
       final Level level,
       final BlockPos pos,
       final Player player,
-      final InteractionHand hand,
       final BlockHitResult hit,
       final CallbackInfoReturnable<InteractionResult> cir) {
     TrapdoorBlockCoupling.used(state, level, pos, player);
