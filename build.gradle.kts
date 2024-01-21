@@ -50,7 +50,7 @@ repositories {
 }
 
 dependencies {
-  minecraft("com.mojang:minecraft:23w51b")
+  minecraft("com.mojang:minecraft:24w03b")
 
   mappings(loom.layered {
     officialMojangMappings {
@@ -58,7 +58,7 @@ dependencies {
     }
   })
 
-  modImplementation("net.fabricmc:fabric-loader:0.15.3")
+  modImplementation("net.fabricmc:fabric-loader:0.15.6")
 
   modImplementation(include(fabricApi.module("fabric-api-base", "0.91.3+1.20.4"))!!)
   modImplementation(include(fabricApi.module("fabric-networking-api-v1", "0.91.3+1.20.4"))!!)

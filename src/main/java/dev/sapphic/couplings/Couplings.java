@@ -35,8 +35,8 @@ public final class Couplings implements ModInitializer {
   public static final int COUPLING_DISTANCE = 64;
   public static final int COUPLING_SIGNAL = 8;
 
-  static final ResourceLocation CLIENT_CONFIG = new ResourceLocation("couplings", "client_config");
-  static final ResourceLocation SERVER_CONFIG = new ResourceLocation("couplings", "server_config");
+//  static final ResourceLocation CLIENT_CONFIG = new ResourceLocation("couplings", "client_config");
+//  static final ResourceLocation SERVER_CONFIG = new ResourceLocation("couplings", "server_config");
 
   static final boolean IGNORE_SNEAKING;
   static final boolean COUPLE_DOORS;
@@ -106,30 +106,31 @@ public final class Couplings implements ModInitializer {
 
   @Override
   public void onInitialize() {
-    ServerPlayNetworking.registerGlobalReceiver(
-        CLIENT_CONFIG,
-        (server, player, listener, buf, sender) -> {
-          Preconditions.checkArgument(buf.readableBytes() == Byte.BYTES, buf);
+    // TODO 1.20.5 (fabric-api changed is not released yet)
+//    ServerPlayNetworking.registerGlobalReceiver(
+//        CLIENT_CONFIG,
+//        (server, player, listener, buf, sender) -> {
+//          Preconditions.checkArgument(buf.readableBytes() == Byte.BYTES, buf);
+//
+//          final var clientConfig = buf.readByte();
+//
+//          Preconditions.checkArgument(clientConfig <= 1, buf);
+//
+//          server.execute(() -> CouplingsPlayer.ignoresSneaking(player, clientConfig != 0));
+//        });
 
-          final var clientConfig = buf.readByte();
-
-          Preconditions.checkArgument(clientConfig <= 1, buf);
-
-          server.execute(() -> CouplingsPlayer.ignoresSneaking(player, clientConfig != 0));
-        });
-
-    ServerPlayConnectionEvents.JOIN.register(
-        (listener, sender, server) -> {
-          var couplings = 0b000;
-
-          couplings |= (COUPLE_DOORS ? 1 : 0) << 2;
-          couplings |= (COUPLE_FENCE_GATES ? 1 : 0) << 1;
-          couplings |= COUPLE_TRAPDOORS ? 1 : 0;
-
-          final var buffer =
-              Unpooled.buffer(Byte.BYTES, Byte.BYTES).writeByte(couplings).asReadOnly();
-
-          ServerPlayNetworking.send(listener.player, SERVER_CONFIG, new FriendlyByteBuf(buffer));
-        });
+//    ServerPlayConnectionEvents.JOIN.register(
+//        (listener, sender, server) -> {
+//          var couplings = 0b000;
+//
+//          couplings |= (COUPLE_DOORS ? 1 : 0) << 2;
+//          couplings |= (COUPLE_FENCE_GATES ? 1 : 0) << 1;
+//          couplings |= COUPLE_TRAPDOORS ? 1 : 0;
+//
+//          final var buffer =
+//              Unpooled.buffer(Byte.BYTES, Byte.BYTES).writeByte(couplings).asReadOnly();
+//
+//          ServerPlayNetworking.send(listener.player, SERVER_CONFIG, new FriendlyByteBuf(buffer));
+//        });
   }
 }
