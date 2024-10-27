@@ -17,13 +17,11 @@
 package dev.sapphic.couplings;
 
 import com.google.common.base.Preconditions;
-import io.netty.buffer.Unpooled;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
 
 @Environment(EnvType.CLIENT)
 public final class CouplingsClient implements ClientModInitializer {
@@ -45,32 +43,21 @@ public final class CouplingsClient implements ClientModInitializer {
 
   @Override
   public void onInitializeClient() {
-      // TODO 1.20.5 (fabric-api changed is not released yet)
-//    ClientPlayNetworking.registerGlobalReceiver(
-//        Couplings.SERVER_CONFIG,
-//        (minecraft, listener, buf, sender) -> {
-//          Preconditions.checkArgument(buf.readableBytes() == Byte.BYTES, buf);
-//
-//          final var serverConfig = buf.readByte();
-//
-//          Preconditions.checkArgument(serverConfig <= ((1 << 2) | (1 << 1) | 1), buf);
-//
-//          minecraft.execute(
-//              () -> {
-//                serverCouplesDoors = ((serverConfig >> 2) & 1) != 0;
-//                serverCouplesFenceGates = ((serverConfig >> 1) & 1) != 0;
-//                serverCouplesTrapdoors = (serverConfig & 1) != 0;
-//              });
-//        });
+    ClientPlayNetworking.registerGlobalReceiver(ConfigSyncPacket.TYPE, (payload, context) -> {
+      int serverConfig = payload.couplings();
+      Preconditions.checkArgument(serverConfig <= ((1 << 2) | (1 << 1) | 1), "Server sent invalid config value!");
 
-//    ClientPlayConnectionEvents.JOIN.register(
-//        (listener, sender, minecraft) -> {
-//          final var clientConfig = Couplings.IGNORE_SNEAKING ? 1 : 0;
-//
-//          ClientPlayNetworking.send(
-//              Couplings.CLIENT_CONFIG,
-//              new FriendlyByteBuf(
-//                  Unpooled.buffer(Byte.BYTES, Byte.BYTES).writeByte(clientConfig).asReadOnly()));
-//        });
+      context.client().execute(
+        () -> {
+          serverCouplesDoors = ((serverConfig >> 2) & 1) != 0;
+          serverCouplesFenceGates = ((serverConfig >> 1) & 1) != 0;
+          serverCouplesTrapdoors = (serverConfig & 1) != 0;
+        });
+    });
+
+    ClientPlayConnectionEvents.JOIN.register(
+      (listener, sender, server) -> {
+        ClientPlayNetworking.send(new ConfigSyncPacket(Couplings.IGNORE_SNEAKING ? 1 : 0));
+      });
   }
 }

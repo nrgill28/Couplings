@@ -20,13 +20,11 @@ import com.electronwill.nightconfig.core.ConfigSpec;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.google.common.base.Preconditions;
-import io.netty.buffer.Unpooled;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.apache.logging.log4j.LogManager;
@@ -34,9 +32,6 @@ import org.apache.logging.log4j.LogManager;
 public final class Couplings implements ModInitializer {
   public static final int COUPLING_DISTANCE = 64;
   public static final int COUPLING_SIGNAL = 8;
-
-//  static final ResourceLocation CLIENT_CONFIG = new ResourceLocation("couplings", "client_config");
-//  static final ResourceLocation SERVER_CONFIG = new ResourceLocation("couplings", "server_config");
 
   static final boolean IGNORE_SNEAKING;
   static final boolean COUPLE_DOORS;
@@ -47,7 +42,7 @@ public final class Couplings implements ModInitializer {
     final var configs = FabricLoader.getInstance().getConfigDir();
     final var config = CommentedFileConfig.of(configs.resolve("couplings.toml"));
 
-    try { 
+    try {
       config.load();
     } catch (final ParsingException e) {
       LogManager.getLogger().warn(e.getMessage());
@@ -106,31 +101,26 @@ public final class Couplings implements ModInitializer {
 
   @Override
   public void onInitialize() {
-    // TODO 1.20.5 (fabric-api changed is not released yet)
-//    ServerPlayNetworking.registerGlobalReceiver(
-//        CLIENT_CONFIG,
-//        (server, player, listener, buf, sender) -> {
-//          Preconditions.checkArgument(buf.readableBytes() == Byte.BYTES, buf);
-//
-//          final var clientConfig = buf.readByte();
-//
-//          Preconditions.checkArgument(clientConfig <= 1, buf);
-//
-//          server.execute(() -> CouplingsPlayer.ignoresSneaking(player, clientConfig != 0));
-//        });
+    PayloadTypeRegistry.playS2C().register(ConfigSyncPacket.TYPE, ConfigSyncPacket.CODEC);
+    PayloadTypeRegistry.playC2S().register(ConfigSyncPacket.TYPE, ConfigSyncPacket.CODEC);
 
-//    ServerPlayConnectionEvents.JOIN.register(
-//        (listener, sender, server) -> {
-//          var couplings = 0b000;
-//
-//          couplings |= (COUPLE_DOORS ? 1 : 0) << 2;
-//          couplings |= (COUPLE_FENCE_GATES ? 1 : 0) << 1;
-//          couplings |= COUPLE_TRAPDOORS ? 1 : 0;
-//
-//          final var buffer =
-//              Unpooled.buffer(Byte.BYTES, Byte.BYTES).writeByte(couplings).asReadOnly();
-//
-//          ServerPlayNetworking.send(listener.player, SERVER_CONFIG, new FriendlyByteBuf(buffer));
-//        });
+    ServerPlayNetworking.registerGlobalReceiver(ConfigSyncPacket.TYPE, (payload, context) -> {
+      int clientConfig = payload.couplings();
+
+      Preconditions.checkArgument(clientConfig <= 1, "Client sent invalid config value!");
+
+      context.server().execute(() -> CouplingsPlayer.ignoresSneaking(context.player(), payload.couplings() != 0));
+    });
+
+    ServerPlayConnectionEvents.JOIN.register(
+      (listener, sender, server) -> {
+        var couplings = 0b000;
+
+        couplings |= (COUPLE_DOORS ? 1 : 0) << 2;
+        couplings |= (COUPLE_FENCE_GATES ? 1 : 0) << 1;
+        couplings |= COUPLE_TRAPDOORS ? 1 : 0;
+
+        ServerPlayNetworking.send(listener.player, new ConfigSyncPacket(couplings));
+    });
   }
 }

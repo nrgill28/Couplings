@@ -38,7 +38,7 @@ public final class TrapdoorBlockCoupling {
       final BlockState state, final Level level, final BlockPos pos, final Player player) {
     if (Couplings.couplesTrapdoors(level)
         && (!player.isCrouching() || Couplings.ignoresSneaking(player))) {
-      tryOpenCloseEach(state, level, pos, player, state.getValue(TrapDoorBlock.OPEN));
+      tryOpenCloseEach(state, level, pos, player, !state.getValue(TrapDoorBlock.OPEN));
     }
   }
 
